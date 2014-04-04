@@ -1,0 +1,56 @@
+#content {
+    width: 100%;
+    display: table;
+}
+
+.container {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    background-color: white;
+    clear: both;
+}
+
+.mainTable {
+    width: 100%;
+}
+
+.mainTable td {
+    width: 50%;
+    height: 128px;
+    padding-left: 132px;
+    background-repeat: no-repeat;
+    -moz-background-size: 128px 128px;
+    background-size: 128px 128px;
+    vertical-align: top;
+}
+
+#health {
+    background-image: url('/static/app/TemplateForXenApp/images/overview.png');
+}
+
+#docs {
+    background-image: url('/static/app/TemplateForXenApp/images/documentation.png');
+}
+
+#servers {
+    background-image: url('/static/app/TemplateForXenApp/images/servers.png');
+}
+
+#community {
+    background-image: url('/static/app/TemplateForXenApp/images/community.png');
+}
+
+#users {
+    background-image: url('/static/app/TemplateForXenApp/images/users.png');
+}
+
+#search {
+    background-image: url('/static/app/TemplateForXenApp/images/search.png');
+}
+
+#apps {
+    background-image: url('/static/app/TemplateForXenApp/images/hand.jpg')
+}

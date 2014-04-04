@@ -1,0 +1,72 @@
+<form stylesheet="user_activity.css">
+  <label>User Activity</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="FarmName">
+      <label>Farm:</label>
+      <choice value="*">All Farms</choice>
+      <populatingSearch fieldForValue="FarmName" fieldForLabel="FarmName">
+	<![CDATA[| inputlookup lookup_host_farm.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+    
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+
+    <input type="text" token="UserName">
+      <label>User Name:</label>
+      <default>*</default>
+      <seed>*</seed>
+    </input>
+    
+    <input type="text" token="server">
+      <label>Server Name:</label>
+      <default>*</default>
+      <seed>*</seed>
+    </input>
+    
+    <input type="text" token="BrowserName">
+      <label>Application Name:</label>
+      <default>*</default>
+      <seed>*</seed>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	This dashboard shows user logons.  Click a row to get session details including individual process resource utilization.
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    <table id="tblUsers">
+      <title>User Activity</title>
+      <searchString>
+	`xd_index` sourcetype=xenapp:*:session FarmName="$FarmName$" BrowserName="$BrowserName$*" UserName="$UserName$" ServerName="$server$" |
+	stats latest(UserName) AS UserName latest(ClientIPV4) AS ClientIPV4 latest(ClientVersion) AS ClientVersion latest(CurrentTime) AS CurrentTime latest(DeviceType) AS DeviceType values(BrowserName) AS BrowserName BY LogOnTime ServerName SessionId |
+	convert timeformat="%m/%d/%Y %H:%M:%S %Z" mktime(CurrentTime) mktime(LogOnTime) |
+	eval SessionDuration = tostring(CurrentTime - LogOnTime, "duration") |
+	eval "Log on Time" = strftime(LogOnTime, "%m/%d/%Y %H:%M:%S") |
+	table UserName "Log on Time" ServerName SessionId SessionDuration BrowserName ClientIPV4 DeviceType ClientVersion LogOnTime CurrentTime |
+	rename UserName AS "User Name" ServerName AS "Server Name" SessionId AS "Session ID" BrowserName AS "Application" ClientIPV4 AS "IP Address" DeviceType AS "Device Type" ClientVersion AS "Client Version"
+      </searchString>
+      
+      <drilldown>
+        <link>
+          <![CDATA[
+            /app/TemplateForXenApp/session-user?form.username=$row.User Name$&form.servername=$row.Server Name$&earliest=$row.LogOnTime$&latest=$row.CurrentTime$&form.sessionId=$row.Session ID$
+          ]]>
+         </link>
+     </drilldown>
+      
+    </table>
+    
+  </row>
+</form>

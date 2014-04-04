@@ -1,0 +1,50 @@
+<form stylesheet="user_session_exp_wizard.css">
+  <label>User Experience - Session</label>
+  
+  <fieldset autoRun="false">
+    
+    <input type="time" searchWhenChanged="true">
+      <default>Last 24 hours</default>
+      <label>Time Range:</label>
+    </input>
+    
+    <input type="text" token="username">
+      <label>User Name:</label>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+        This dashboard helps determine a user's experience within a Citrix session. Enter a user name below and press the Search button to select a user session to inspect.
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    <table id="userSessions">
+      <searchString>
+        `xd_index` sourcetype=xenapp:*:session UserName="$username$" |
+        stats latest(CurrentTime) AS CurrentTime values(BrowserName) AS BrowserName by LogOnTime SessionId ServerName UserName FarmName |
+        convert timeformat="%m/%d/%Y %H:%M:%S %Z" mktime(CurrentTime) mktime(LogOnTime) |
+        eval SessionDuration = tostring(CurrentTime - LogOnTime, "duration") |
+        eval "Log on Time" = strftime(LogOnTime, "%m/%d/%Y %H:%M:%S") |
+        table UserName "Log on Time" FarmName BrowserName ServerName SessionId SessionDuration LogOnTime CurrentTime |
+        rename UserName AS "User Name" FarmName AS Farm BrowserName AS "Application(s)" ServerName AS "Server Name" SessionId AS "Session ID" SessionDuration AS "Session Duration"
+      </searchString>
+      
+      <title>User Sessions</title>
+      
+      <drilldown>
+        <link>
+          <![CDATA[
+            /app/TemplateForXenApp/user_session_experience?form.username=$row.User Name$&form.servername=$row.Server Name$&earliest=$row.LogOnTime$&latest=$row.CurrentTime$&form.sessionId=$row.Session ID$
+          ]]>
+         </link>
+     </drilldown>
+      
+    </table>
+  </row>
+  
+</form>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="TemplateForXenApp" default="package">
+	<property name="APP" value="TemplateForXenApp"/>
+
+	<property name="SERVERADDON" value="TA-XA6x-Server"/>
+	<property name="XMLADDON" value="TA-XA6x-XML"/>
+	<property name="ZDCADDON" value="TA-XA6x-ZDC"/>
+
+	<property name="VERSION" value="1.0.0"/>
+	<buildnumber/>
+
+	<property name="build.dir" value="build"/>
+	<property name="addon.dir" value="build/${APP}/appserver/addons" />
+	<property name="dist.file" value="${build.dir}/dist/${APP}-${VERSION}.tar.gz"/>
+	
+
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+	</target>
+
+	<target name="package" depends="build,build-addons">
+		<mkdir dir="${build.dir}/dist" />
+		<tar destfile="${dist.file}" longfile="gnu" compression="gzip">
+			<tarfileset dir="${build.dir}" filemode="755" username="splunk" group="splunk">
+				<include name="${APP}/**"/>
+			</tarfileset>
+		</tar>
+	</target>
+
+	<target name="build" depends="build-app,build-addons">
+	</target>
+
+	<target name="build-addons" depends="build-server,build-xml,build-zdc">
+	</target>
+
+	<target name="build-app">
+		<mkdir dir="${build.dir}/${APP}"/>
+
+		<copy todir="${build.dir}/${APP}" filtering="off" verbose="on">
+			<fileset dir="${APP}">
+				<exclude name="**/.*" />
+				<exclude name="local/.*" />
+				<exclude name="**/*-gist" />
+				<exclude name="**/*.xcf" />
+				<exclude name="**/*.d/**" />
+				<exclude name="default/app.conf" />
+				<exclude name="lookups/calendar_users.csv" />
+				<exclude name="lookups/lookup_farms.csv" />
+				<exclude name="lookups/lookup_host_farm.csv" />
+				<exclude name="lookups/lookup_pubapp.csv" />
+				<exclude name="lookups/winHosts.csv" />
+				<exclude name="default/viewstates.conf" />
+			</fileset>
+		</copy>
+
+		<echo>Build Number is ${build.number}</echo>
+		<copy todir="${build.dir}/${APP}/default" file="${APP}/default/app.conf" verbose="on">
+			<filterset>
+				<filter token="BUILDNUMBER" value="${build.number}" />
+			</filterset>
+			<filterset>
+				<filter token="VERSION" value="${VERSION}" />
+			</filterset>
+		</copy>
+		
+		<copy todir="${build.dir}/${APP}/appserver/static" file="${build.dir}/${APP}/Installation.pdf" verbose="on">
+		</copy>
+
+	</target>
+
+
+	<target name="build-server">
+		<mkdir dir="${addon.dir}"/>
+		
+		<copy todir="${addon.dir}/${SERVERADDON}" filtering="off" verbose="on">
+			<fileset dir="${SERVERADDON}">
+				<exclude name="**/.*" />
+				<exclude name="local/**" />
+				<exclude name="**/*-gist" />
+				<exclude name="**/*.xcf" />
+				<exclude name="**/*.d/**" />
+				<exclude name="default/app.conf" />
+				<exclude name="bin/powershell/GPO-Ops-Log.log" />
+			</fileset>
+		</copy>
+		
+		<copy todir="${addon.dir}/${SERVERADDON}/default" file="${SERVERADDON}/default/app.conf" verbose="on">
+			<filterset>
+				<filter token="BUILDNUMBER" value="${build.number}"/>
+			</filterset>
+			<filterset>
+				<filter token="VERSION" value="${VERSION}"/>
+			</filterset>
+		</copy>
+	</target>
+	
+	<target name="build-xml">
+		<mkdir dir="${addon.dir}"/>
+		
+		<copy todir="${addon.dir}/${XMLADDON}" filtering="off" verbose="on">
+			<fileset dir="${XMLADDON}">
+				<exclude name="**/.*" />
+				<exclude name="local/**" />
+				<exclude name="**/*-gist" />
+				<exclude name="**/*.xcf" />
+				<exclude name="**/*.d/**" />
+				<exclude name="default/app.conf" />
+			</fileset>
+		</copy>
+		
+		<copy todir="${addon.dir}/${XMLADDON}/default" file="${XMLADDON}/default/app.conf" verbose="on">
+			<filterset>
+				<filter token="BUILDNUMBER" value="${build.number}"/>
+			</filterset>
+			<filterset>
+				<filter token="VERSION" value="${VERSION}"/>
+			</filterset>
+		</copy>
+	</target>
+	
+	<target name="build-zdc">
+		<mkdir dir="${addon.dir}"/>
+		
+		<copy todir="${addon.dir}/${ZDCADDON}" filtering="off" verbose="on">
+			<fileset dir="${ZDCADDON}">
+				<exclude name="**/.*" />
+				<exclude name="local/**" />
+				<exclude name="**/*-gist" />
+				<exclude name="**/*.xcf" />
+				<exclude name="**/*.d/**" />
+				<exclude name="default/app.conf" />
+				<exclude name="bin/powershell/configLog.position" />
+				<exclude name="bin/powershell/ConfigLog.udl" />
+			</fileset>
+		</copy>
+		
+		<copy todir="${addon.dir}/${ZDCADDON}/default" file="${ZDCADDON}/default/app.conf" verbose="on">
+			<filterset>
+				<filter token="BUILDNUMBER" value="${build.number}"/>
+			</filterset>
+			<filterset>
+				<filter token="VERSION" value="${VERSION}"/>
+			</filterset>
+		</copy>
+	</target>
+
+
+
+</project>
+

@@ -1,0 +1,51 @@
+<form>
+  <label>User ICA Latency</label>
+  
+  <fieldset autoRun="true">
+    <input type="dropdown" token="FarmName">
+      <label>Farm:</label>
+      <choice value="*">All Farms</choice>
+      <populatingSearch fieldForValue="FarmName" fieldForLabel="FarmName">
+	<![CDATA[| inputlookup lookup_host_farm.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+  
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+
+    <input type="text" token="server">
+      <label>Server:</label>
+      <seed>*</seed>
+    </input>
+    
+    <input type="text" token="username">
+      <label>User Name:</label>
+      <default>*</default>
+      <seed>*</seed>
+    </input>
+    
+    <input type="text" token="meanLatency">
+      <label>Latency greather than:</label>
+      <default>0</default>
+      <seed>0</seed>
+    </input>
+  </fieldset>
+  
+  <row>
+    <table>
+      <title>User ICA Latency</title>
+      <searchString>
+	`xd_index` sourcetype="xenapp:*:session" host="$server$" FarmName="$FarmName$" UserName="$username$" |
+	eval UserName = lower(UserName) |
+	join host UserName [search `xd_perfmon_index` sourcetype="PerfmonMK:ICASession" host="$server$" | fields host UserName Latency_-_Session_Average | eval UserName = lower(UserName)] |
+	stats values(ClientName) as Device values(ClientIPV4) as "IP Address" values(ClientType) as Client values(ClientVersion) as "Client Version" values(BrowserName) as Applications mean(Latency_-_Session_Average) as ml BY host UserName LogOnTime |
+	where ml >= $meanLatency$ |
+	rename host AS Host UserName AS "User Name" ml AS "Mean Latency" LogOnTime AS "Log on Time"
+      </searchString>
+    </table>
+    
+  </row>
+</form>

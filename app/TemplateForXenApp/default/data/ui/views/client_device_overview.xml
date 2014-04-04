@@ -1,0 +1,96 @@
+<form script="perf.js">
+  <label>Clients and Devices</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="FarmName">
+      <label>Farm:</label>
+      <choice value="*">All Farms</choice>
+      <populatingSearch fieldForValue="FarmName" fieldForLabel="FarmName">
+	<![CDATA[| inputlookup lookup_host_farm.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+    
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 60 minutes</default>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	This dashboard displays the most frequently used ICA client versions and devices.  The graphs below display the count by user name.
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    
+    <chart>
+      <title>Top Client Versions</title>
+      <searchString>
+	`xd_index` sourcetype="xenapp:*:session" | fillnull value="" ClientVersion | stats count by UserName ClientVersion | eval ClientVersion = if(ClientVersion == "", "Unknown", ClientVersion) | chart count by ClientVersion
+      </searchString>
+      <option name="charting.axisTitleX.text">Client Version</option>
+      <option name="charting.axisTitleX.visibility">visible</option>
+      <option name="charting.axisTitleY.text">Count by Users</option>
+      <option name="charting.axisTitleY.visibility">visible</option>
+      <option name="charting.axisX.scale">linear</option>
+      <option name="charting.axisY.scale">linear</option>
+      <option name="charting.chart">bar</option>
+      <option name="charting.chart.nullValueMode">gaps</option>
+      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+      <option name="charting.chart.stackMode">default</option>
+      <option name="charting.chart.style">shiny</option>
+      <option name="charting.drilldown">none</option>
+      <option name="charting.layout.splitSeries">0</option>
+      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+      <option name="charting.legend.placement">none</option>
+    </chart>
+    
+    <chart>
+      <title>Top Device Types</title>
+      <searchString>
+	`xd_index` sourcetype="xenapp:*:session" | stats count by UserName DeviceType | chart count by DeviceType
+      </searchString>
+      <option name="charting.axisTitleX.text">Device Type</option>
+      <option name="charting.axisTitleX.visibility">visible</option>
+      <option name="charting.axisTitleY.text">Count by Users</option>
+      <option name="charting.axisTitleY.visibility">visible</option>
+      <option name="charting.axisX.scale">linear</option>
+      <option name="charting.axisY.scale">linear</option>
+      <option name="charting.chart">pie</option>
+      <option name="charting.chart.nullValueMode">gaps</option>
+      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+      <option name="charting.chart.stackMode">default</option>
+      <option name="charting.chart.style">shiny</option>
+      <option name="charting.drilldown">none</option>
+      <option name="charting.layout.splitSeries">0</option>
+      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+      <option name="charting.legend.placement">none</option>
+    </chart>
+    
+  </row>
+  
+  <row>
+    <table>
+      <title>Client and Device Details by User and Logon</title>
+      <searchString>
+	`xd_index` sourcetype="xenapp:*:session" |
+	fillnull value="" ClientVersion |
+	stats count BY LogOnTime host UserName ClientVersion DeviceType ClientIPV4 DisplayName |
+	table LogOnTime host UserName ClientVersion DeviceType ClientIPV4 DisplayName |
+	rename LogOnTime AS "Logon Time" host AS Server UserName AS "User" ClientVersion AS "Client Version" DeviceType AS "Device Type" ClientIPV4 AS "Client Address" DisplayName AS "Application"
+      </searchString>
+      
+      <option name="wrap">true</option>
+      <option name="rowNumbers">false</option>
+      <option name="dataOverlayMode">none</option>
+      <option name="drilldown">none</option>
+    </table>
+  </row>
+  
+</form>

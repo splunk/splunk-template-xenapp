@@ -1,0 +1,218 @@
+<form>
+  <label>XenApp Performance Overview</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="FarmName">
+      <label>Farm:</label>
+      <choice value="*">All Farms</choice>
+      <populatingSearch fieldForValue="FarmName" fieldForLabel="FarmName">
+	<![CDATA[| inputlookup lookup_host_farm.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+    
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 60 minutes</default>
+    </input>
+
+    <input type="text" token="server" id="server">
+      <label>Server:</label>
+      <seed>*</seed>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	This dashboard displays the various XenApp performance details by host.  By default, only the top 10 hosts are shown for each category.  This can be changed by modifying the sort command on the underlying searches. <br />
+	Click on a row to get further details about the displayed metrics.
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    <table>
+      <title>XML Broker - Application Resolution Time (ms)</title>
+      <searchString>
+	`xd_perfmon_index` sourcetype="PerfmonMk:XMLBroker" FarmName="$FarmName$" host="$server$" |
+	stats avg(Application_Resolution_Time_(ms)) AS avg max(Application_Resolution_Time_(ms)) AS max sparkline(avg(Application_Resolution_Time_(ms))) AS Trend latest(Application_Resolution_Time_(ms)) as Current latest(_time) as "Last Updated" by host |
+	convert ctime("Last Updated") |
+	sort 10 - avg |
+	eval avg = round(avg, 2) |
+	eval max = round(max, 2) |
+	eval Current = round(Current, 2) |
+	table host avg max Current Trend "Last Updated" |
+	rename host AS Server avg AS "Average" max AS "Max Value"
+      </searchString>
+      
+      <option name="wrap">true</option>
+      <option name="rowNumbers">false</option>
+      <option name="dataOverlayMode">none</option>
+      <option name="drilldown">row</option>
+      
+      <format type="sparkline" field="Trend">
+        <option name="lineColor">#5379af</option>
+        <option name="fillColor">#CCDDFF</option>
+        <option name="lineWidth">1</option>
+        <option name="maxSpotColor">#A2FFA2</option>
+        <option name="spotRadius">3</option>
+        <option name="height">30px</option>
+	<option name="tooltipPrefix">Average CPU: </option>
+      </format>
+      
+      <!--
+      <drilldown>
+        <link>
+          <![CDATA[
+            /app/TemplateForXenApp/host-perf-detail?earliest=$earliest$&latest=$latest$&form.server=$row.Server$
+          ]]>
+         </link>
+     </drilldown>
+      -->
+      
+      <drilldown>
+        <link>
+          <![CDATA[
+            /app/TemplateForXenApp/search?q=search `xd_perfmon_index` sourcetype="PerfmonMk:Processor" instance="_Total" FarmName="$FarmName$" host="$row.Server$"&earliest=$earliest$&latest=$latest$
+          ]]>
+         </link>
+     </drilldown>
+    
+    </table>
+    
+    <table>
+      <title>XML Broker - Number of busy XML Threads</title>
+      <searchString>
+	`xd_perfmon_index` sourcetype="PerfmonMk:XMLBroker" FarmName="$FarmName$" host="$server$" |
+	stats avg(Number_of_busy_XML_threads) AS avg max(Number_of_busy_XML_threads) AS max sparkline(avg(Number_of_busy_XML_threads)) AS Trend latest(Number_of_busy_XML_threads) AS Current latest(_time) AS "Last Updated" by host |
+	convert ctime("Last Updated") |
+	sort 10 - avg |
+	eval avg = round(avg, 2) |
+	eval max = round(max, 2) |
+	eval Current = round(Current, 2) |
+	table host avg max Current Trend "Last Updated" |
+	rename host AS Server avg AS "Averagee" max AS "Max Value"
+      </searchString>
+      
+      <option name="wrap">true</option>
+      <option name="rowNumbers">false</option>
+      <option name="dataOverlayMode">none</option>
+      <option name="drilldown">row</option>
+      
+      <format type="sparkline" field="Trend">
+        <option name="lineColor">#5379af</option>
+        <option name="fillColor">#CCDDFF</option>
+        <option name="lineWidth">1</option>
+        <option name="maxSpotColor">#A2FFA2</option>
+        <option name="spotRadius">3</option>
+        <option name="height">30px</option>
+	<option name="tooltipPrefix">Average Value: </option>
+      </format>
+      
+    </table>
+    
+    
+    
+  </row>
+  
+  <row>
+    <table>
+      <title>Work Item - Resolution Queue Ready</title>
+      <searchString>
+	`xd_perfmon_index` sourcetype="PerfmonMk:XMLBroker" FarmName="$FarmName$" host="$server$" |
+	stats avg(Resolution_WorkItem_Queue_Ready_Count) AS avg max(Resolution_WorkItem_Queue_Ready_Count) AS max sparkline(avg(Resolution_WorkItem_Queue_Ready_Count)) AS Trend latest(Resolution_WorkItem_Queue_Ready_Count) as Current latest(_time) as "Last Updated" by host |
+	convert ctime("Last Updated") |
+	sort 10 - avg |
+	eval avg = round(avg, 2) |
+	eval max = round(max, 2) |
+	eval Current = round(Current, 2) |
+	table host avg max Current Trend "Last Updated" |
+	rename host AS Server avg AS "Average" max AS "Max Value"
+      </searchString>
+      
+      <option name="wrap">true</option>
+      <option name="rowNumbers">false</option>
+      <option name="dataOverlayMode">none</option>
+      <option name="drilldown">row</option>
+      
+      <format type="sparkline" field="Trend">
+        <option name="lineColor">#5379af</option>
+        <option name="fillColor">#CCDDFF</option>
+        <option name="lineWidth">1</option>
+        <option name="maxSpotColor">#A2FFA2</option>
+        <option name="spotRadius">3</option>
+        <option name="height">30px</option>
+	<option name="tooltipPrefix">Average Value: </option>
+      </format>
+      
+    </table>
+    
+    <table>
+      <title>Work Item - Queue Ready Count</title>
+      <searchString>
+	`xd_perfmon_index` sourcetype="PerfmonMk:XMLBroker" FarmName="$FarmName$" host="$server$" |
+	stats avg(WorkItem_Queue_Ready_Count) AS avg max(WorkItem_Queue_Ready_Count) AS max sparkline(avg(WorkItem_Queue_Ready_Count)) AS Trend latest(WorkItem_Queue_Ready_Count) as Current latest(_time) as "Last Updated" by host |
+	convert ctime("Last Updated") |
+	sort 10 - avg |
+	eval avg = round(avg, 2) |
+	eval max = round(max, 2) |
+	eval Current = round(Current, 2) |
+	table host avg max Current Trend "Last Updated" |
+	rename host AS Server avg AS "Average" max AS "Max Value"
+      </searchString>
+      
+      <option name="wrap">true</option>
+      <option name="rowNumbers">false</option>
+      <option name="dataOverlayMode">none</option>
+      <option name="drilldown">row</option>
+      
+      <format type="sparkline" field="Trend">
+        <option name="lineColor">#5379af</option>
+        <option name="fillColor">#CCDDFF</option>
+        <option name="lineWidth">1</option>
+        <option name="maxSpotColor">#A2FFA2</option>
+        <option name="spotRadius">3</option>
+        <option name="height">30px</option>
+	<option name="tooltipPrefix">Average Value: </option>
+      </format>
+      
+    </table>
+    
+  </row>
+  
+  <row>
+    <table>
+      <title>Citrix Licensing - Last Recorded License Check-Out Response Time</title>
+      <searchString>
+	`xd_perfmon_index` sourcetype="PerfmonMk:CitrixLicensing" FarmName="$FarmName$" host="$server$" |
+	stats avg(Last_Recorded_License_Check-Out_Response_Time_(ms)) AS avg max(Last_Recorded_License_Check-Out_Response_Time_(ms)) AS max sparkline(avg(Last_Recorded_License_Check-Out_Response_Time_(ms))) AS "Trend" latest(Last_Recorded_License_Check-Out_Response_Time_(ms)) as Current latest(_time) as "Last Updated" by host |
+	convert ctime("Last Updated") |
+	sort 10 - avg |
+	eval avg = round(avg, 2) |
+	eval max = round(max, 2) |
+	eval Current = round(Current, 2) |
+	table host avg max Current Trend "Last Updated" |
+	rename host AS Server avg AS "Average" max AS "Max"
+      </searchString>
+      
+      <option name="wrap">true</option>
+      <option name="rowNumbers">false</option>
+      <option name="dataOverlayMode">none</option>
+      <option name="drilldown">row</option>
+      
+      <format type="sparkline" field="Trend">
+        <option name="lineColor">#5379af</option>
+        <option name="fillColor">#CCDDFF</option>
+        <option name="lineWidth">1</option>
+        <option name="maxSpotColor">#A2FFA2</option>
+        <option name="spotRadius">3</option>
+        <option name="height">30px</option>
+	<option name="tooltipPrefix">Average % Usage: </option>
+      </format>
+      
+    </table>
+  </row>
+</form>

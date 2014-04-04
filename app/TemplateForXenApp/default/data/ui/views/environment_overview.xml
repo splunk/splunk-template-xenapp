@@ -1,0 +1,164 @@
+<form stylesheet="environment_overview.css" script="environment_overview.js">
+  <label>Environment Overview</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="FarmName">
+      <label>Farm:</label>
+      <choice value="*">All Farms</choice>
+      <populatingSearch fieldForValue="FarmName" fieldForLabel="FarmName">
+	<![CDATA[| inputlookup lookup_host_farm.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+    
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+  
+    <table>
+      <title>Farm Details</title>
+      <searchString>
+	| inputlookup lookup_farms.csv |
+	rename _time AS "Last Updated" |
+	convert ctime("Last Updated") |
+	table FarmName ServerVersion Servers Applications "Last Updated" |
+	rename FarmName AS "Farm Name" ServerVersion AS "Version"
+      </searchString>
+      
+      <drilldown>
+	<link>
+	  <![CDATA[
+	    /app/TemplateForXenApp/farm_overview?earliest=$earliest$&latest=$latest$&form.FarmName=$row.Farm Name$
+	  ]]>
+	</link>
+      </drilldown>
+      
+    </table>
+    
+    <table id="tblHealth">
+      <title>Health</title>
+      <searchString>
+	`xd_index` sourcetype="WMI:Services" FarmName="$FarmName$" `Services-Inf` |
+	stats latest(State) AS State by DisplayName host |
+	stats count BY State |
+	where State!="Running"  |
+	appendpipe [stats count | where count == 0] |
+	appendcols [search `xd_index` sourcetype="WMI:Services" FarmName="*" `Services-Inf` | stats count AS serviceCount] |
+	eval Status = if(serviceCount == 0, "No Data", if(count == 0, "All Services Running", count." Service(s) Critical")) |
+	fillnull State value="*" |
+	eval range=if(serviceCount == 0, "elevated", if(count > 0, "severe", "low")) |
+	table Status State range
+      </searchString>
+      
+      <drilldown>
+	<link>
+	  <![CDATA[
+	    /app/TemplateForXenApp/services_group?earliest=$earliest$&latest=$latest$&form.FarmName=$FarmName$&form.state=$row.State$
+	  ]]>
+	</link>
+      </drilldown>
+      
+    </table>
+    
+  </row>
+  
+  <row>
+    <chart id="chartApps">
+      <title>Popular Applications</title>
+      <searchString>
+	`xd_index` sourcetype=xenapp:*:session Protocol="ica" BrowserName!="" FarmName="$FarmName$" |
+	top limit=10 BrowserName |
+	rename BrowserName AS "Published Application"
+      </searchString>
+      <option name="charting.axisTitleX.visibility">visible</option>
+      <option name="charting.axisTitleY.visibility">visible</option>
+      <option name="charting.axisX.scale">linear</option>
+      <option name="charting.axisY.scale">linear</option>
+      <option name="charting.chart">pie</option>
+      <option name="charting.chart.nullValueMode">gaps</option>
+      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+      <option name="charting.chart.stackMode">default</option>
+      <option name="charting.chart.style">shiny</option>
+      <option name="charting.drilldown">all</option>
+      <option name="charting.layout.splitSeries">0</option>
+      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+      <option name="charting.legend.placement">right</option>
+      
+      <drilldown>
+        <link>
+          <![CDATA[
+            /app/TemplateForXenApp/user_activity?earliest=$earliest$&latest=$latest$&form.BrowserName=$row.Published Application$
+          ]]>
+         </link>
+     </drilldown>
+      
+    </chart>
+    
+    <chart>
+      <title>Users by Farm</title>
+      <searchString>
+	`xd_index` sourcetype=xenapp:*:session FarmName="$FarmName$" |
+	timechart dc(AccountName) AS "User Count" by FarmName
+      </searchString>
+      <option name="charting.axisTitleX.visibility">collapsed</option>
+      <option name="charting.axisTitleY.visibility">visible</option>
+      <option name="charting.axisX.scale">linear</option>
+      <option name="charting.axisY.scale">linear</option>
+      <option name="charting.chart">line</option>
+      <option name="charting.chart.nullValueMode">gaps</option>
+      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+      <option name="charting.chart.stackMode">default</option>
+      <option name="charting.chart.style">shiny</option>
+      <option name="charting.drilldown">all</option>
+      <option name="charting.layout.splitSeries">0</option>
+      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+      <option name="charting.legend.placement">right</option>
+      
+      <drilldown>
+        <link>
+          <![CDATA[
+            /app/TemplateForXenApp/user_activity?earliest=$earliest$&latest=$latest$&form.FarmName=$row.FarmName$
+          ]]>
+         </link>
+     </drilldown>
+      
+    </chart>
+  </row>
+  
+  <row>
+    <table id="tblAlerts">
+      <title>Alerts</title>
+      <searchString>
+        `xd_index`_alerts FarmName="$FarmName$" |
+	stats latest(_time) AS latest_alert_time latest(Value) AS Value latest(Severity) AS Severity BY FarmName orig_host AlertName Details |
+	convert ctime(latest_alert_time) AS latest_alert_time |
+	eval View = case(
+	  like(AlertName, "%Service Critical"), "services_group",
+	  like(AlertName, "CPU %"), "host_proc_detail",
+	  like(AlertName, "Memory %"), "host_mem_detail",
+	  like(AlertName, "Pages/sec%"), "host_mem_detail",
+	  like(AlertName, "Disk%"), "host_disk_detail"
+	  )  |
+	sort latest_alert_time |
+	table latest_alert_time FarmName AlertName Severity orig_host Details Value View |
+	rename latest_alert_time AS "Time" AlertName AS Alert orig_host AS Host FarmName AS Farm
+      </searchString>
+      
+      <drilldown>
+	<link>
+	  <![CDATA[
+	    /app/TemplateForXenApp/$row.View$?earliest=$earliest$&latest=$latest$&form.server=$row.Host$&form.FarmName=$row.Farm$
+	  ]]>
+	</link>
+      </drilldown>
+      
+    </table>
+  </row>
+  
+</form>

@@ -1,0 +1,36 @@
+<form>
+  <label>Rebuild Host to Farm Lookup File</label>
+  
+  <fieldset autoRun="false">
+    
+    <input type="time" searchWhenChanged="false">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	The host to farm lookup table is named <code>lookup_host_farm.csv</code> and correlates servers to XenApp farms.
+	This is particularly helpful on the performance dashboards as the performance data gathered from Windows perfmon does not have a concept of a farm.
+	The same is true for information gathered from Windows Event Logs or any data that does not have a farm concept.
+      </p>
+      <p>
+	To rebuild the host to farm lookup table, choose a time range above and click submit.  You may need to choose a larger time range such as "Last 7 days".
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    <table>
+      <title>Host to Farm Table</title>
+      <searchString>
+	| savedsearch "Lookup - Host to Farm"
+      </searchString>
+    </table>
+  </row>
+ 
+  
+</form>

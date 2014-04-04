@@ -1,0 +1,32 @@
+<form>
+  <label>Rebuild Farm Lookup File</label>
+  
+  <fieldset autoRun="false">
+    
+    <input type="time" searchWhenChanged="false">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	The farm lookup table is named <code>lookup_farms.csv</code> and contains information about the various XenApp Farms in your environment.
+	To rebuild the farm lookup table, choose a time range above and click submit.  You may need to choose a larger time range such as "Last 7 days".
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    <table>
+      <title>Farm Table</title>
+      <searchString>
+	| savedsearch "Lookup - Farms"
+      </searchString>
+    </table>
+  </row>
+ 
+  
+</form>

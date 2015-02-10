@@ -1,0 +1,21 @@
+2014-06-20 10:34:37
+DisplayName=Citrix XTE Server
+Name=CitrixXTEServer
+StartName=NT AUTHORITY\NetworkService
+State=Running
+Status=OK
+wmi_type=Services
+2014-06-20 10:27:26
+DisplayName=Citrix XTE Server
+Name=CitrixXTEServer
+StartName=NT AUTHORITY\NetworkService
+State=Stopped
+Status=OK
+wmi_type=Services
+2014-06-20 10:19:01
+DisplayName=Citrix XTE Server
+Name=CitrixXTEServer
+StartName=NT AUTHORITY\NetworkService
+State=Running
+Status=OK
+wmi_type=Services

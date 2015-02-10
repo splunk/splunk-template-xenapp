@@ -6,7 +6,7 @@
 	<property name="XMLADDON" value="TA-XA6x-XML"/>
 	<property name="ZDCADDON" value="TA-XA6x-ZDC"/>
 
-	<property name="VERSION" value="1.0.0"/>
+	<property name="VERSION" value="1.1.0"/>
 	<buildnumber/>
 
 	<property name="build.dir" value="build"/>

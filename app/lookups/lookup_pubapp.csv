@@ -1,0 +1,6 @@
+FarmName,BrowserName,ProcessName,DisplayName,ApplicationType,Status,PreLaunch,Enabled
+XA65F01,"Citrix AppCenter",CmiLaunch,"Citrix AppCenter",ServerInstalled,Enabled,False,True
+XA65F01,Calc,calc,Calc,ServerInstalled,Enabled,False,True
+XA65F01,Google,iexplore,Google,ServerInstalled,Enabled,False,True
+XA65F01,"MS Paint",mspaint,"MS Paint",ServerInstalled,Enabled,False,True
+XA65F01,Notepad,notepad,Notepad,ServerInstalled,Enabled,False,True

@@ -1,0 +1,11 @@
+Name,ServiceGroup
+"IMAService","IMA"
+"PolicyAgent","IMA"
+"RpcSs","IMA"
+"LanmanServer","IMA"
+"LanmanWorkstation","IMA"
+"IMAAdvanceSrv","IMA"
+"CtxHttp","XML"
+"CitrixXTEServer","XTE"
+"TermService","RDS"
+"RpcSs","RDS"

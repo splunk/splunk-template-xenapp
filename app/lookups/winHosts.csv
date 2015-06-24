@@ -1,0 +1,2 @@
+host,"_time",OS,Architecture,Version,BuildNumber,ServicePack,LastBootUpTime,TotalPhysicalMemoryKB,TotalVirtualMemoryKB,NumberOfCores
+"XA65-01",1434669224,"Microsoft Windows Server 2008 R2 Standard",x64,"6.1.7601",7601,"Service Pack 1","20150615190243.740250-300",2096696,4193392,2

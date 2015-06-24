@@ -1,0 +1,11 @@
+#timechartCPU {
+    /*visibility: hidden;*/
+    height: 0px;
+    overflow: hidden;
+}
+
+#timechartMem {
+    /*visibility: hidden;*/
+    height: 0px;
+    overflow: hidden;
+}

@@ -1,0 +1,164 @@
+<form script="user_session_experience.js" stylesheet="user_session_experience.css">
+  <label>User Session Experience</label>
+  <fieldset submitButton="true">
+    <input type="time">
+      <label>Time Range:</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="text" token="username">
+      <label>User Name:</label>
+    </input>
+    <input type="text" token="servername">
+      <label>Server Name:</label>
+    </input>
+    <input type="text" token="sessionId">
+      <label>Session ID:</label>
+    </input>
+  </fieldset>
+  
+  <search id="basePerfCPU">
+    <query>`xd_perfmon_index` sourcetype="PerfmonMk:Processor" instance="_Total" host="$servername$" | stats count by _time %_Processor_Time</query>
+  </search>
+  
+  <search id="basePerfMem">
+    <query>
+	`xd_perfmon_index` source="perfmonmk:memory" host="$servername$" | lookup winHosts host OUTPUT TotalPhysicalMemoryKB | eval Available_KB = (Available_Bytes / 1024) | eval pctFreeMem = round((Available_KB / TotalPhysicalMemoryKB) * 100, 2) | stats count by _time pctFreeMem Available_KB TotalPhysicalMemoryKB
+    </query>
+  </search>
+  
+  <search id="basePerfICA">
+    <query>
+	`xd_perfmon_index` sourcetype="PerfmonMk:ICASession" host="$servername$" | rex field=instance ".*\\((?P&lt;UserName&gt;[^\\)]+)" | eval UserName=lower(UserName) | where UserName=lower("$username$") | bin _time span=1m | stats count by _time Latency_-_Session_Average
+    </query>
+  </search>
+  
+  <row>
+    <panel>
+      <single id="singlePctCPU">
+	<title>Average Host Processor Time</title>
+        <search id="pctCPU" base="basePerfCPU">
+          <query>stats avg(%_Processor_Time) as cpu | eval cpu=round(cpu,2) | eval cpuPct = cpu." %" | rangemap field=cpu low=0-`CPU-Warning` elevated=`CPU-Warning`-`CPU-Critical` default=severe</query>
+        </search>
+        <option name="field">cpuPct</option>
+        <option name="classField">range</option>
+        <option name="underLabel">% CPU</option>
+        <option name="linkView">search</option>
+        <option name="drilldown">none</option>
+      </single>
+      
+	<html>
+	    <div style="float: right">
+		<img id="imgHostCpu" class="toggle" title="Show/hide host processor details" src="/static/app/TemplateForXenApp/expand.png" />
+	    </div>
+	</html>
+	
+	<chart id="timechartCPU">
+	    <title>CPU usage over time</title>
+	    <search id="timechartCPUsearch" base="basePerfCPU">
+		<query>eval wt = `CPU-Warning` | eval ct = `CPU-Critical` | timechart avg(%_Processor_Time) AS "% Processor Time" max(wt) AS "Warning Threshold" max(ct) AS "Critical Threshold"</query>
+	    </search>
+	    <option name="charting.chart">line</option>
+	    <option name="charting.chart.nullValueMode">connect</option>
+	    <option name="charting.legend.placement">bottom</option>
+	    <option name="charting.axisY.maximumNumber">100</option>
+	    <option name="charting.axisY.minimumNumber">0</option>
+            <option name="resizable">true</option> true,
+            <option name="charting.axisTitleX.visibility">collapsed</option>
+	</chart>
+      
+    </panel>
+      
+    <panel>
+      <single id="singlePctMem">
+	<title>Average Percent Available Memory</title>
+        <search id="pctMem" base="basePerfMem">
+          <query>stats avg(pctFreeMem) as mem | eval mem=round(mem,2) | eval memPct = mem." %" | rangemap field=mem low=30-100 elevated=15-30 severe=0-15 default=low</query>
+        </search>
+        <option name="field">memPct</option>
+        <option name="classField">range</option>
+        <option name="underLabel">% FREE MEMORY</option>
+        <option name="linkView">search</option>
+        <option name="drilldown">none</option>
+      </single>
+      
+	<html>
+	    <div style="float: right">
+		<img id="imgHostMem" class="toggle" title="Show/hide host memory details" src="/static/app/TemplateForXenApp/expand.png" />
+	    </div>
+	</html>
+	
+	<chart id="timechartMem">
+	    <title>Memory usage over time</title>
+	    <search id="timechartMemSearch" base="basePerfMem">
+		<query>eval pctUsedMem = 100 - pctFreeMem | eval warn = 100-`Mem-Warning` | eval critical = 100-`Mem-Critical` | timechart avg(pctUsedMem) AS "% Used Memory" max(warn) AS "Warning Threshold" max(critical) AS "Critical Threshold"</query>
+	    </search>
+	    <option name="charting.chart">line</option>
+	    <option name="charting.chart.nullValueMode">connect</option>
+	    <option name="charting.legend.placement">bottom</option>
+	    <option name="charting.axisY.maximumNumber">100</option>
+	    <option name="charting.axisY.minimumNumber">0</option>
+            <option name="resizable">true</option> true,
+            <option name="charting.axisTitleX.visibility">collapsed</option>
+	</chart>
+      
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <single>
+	<title>Average ICA Session Latency</title>
+	<search id="icaSessionLat" base="basePerfICA">
+	  <query>stats avg(Latency_-_Session_Average) as la | eval la=round(la,2)</query>
+	</search>
+	<option name="field">la</option>
+	<option name="underLabel">Average ICA Session Latency</option>
+	<option name="linkView">search</option>
+	<option name="drilldown">none</option>
+      </single>
+	
+	<chart id="timechartICA">
+	    <title>ICA latency over time</title>
+	    <search id="timechartICASearch" base="basePerfICA">
+		<query>timechart avg(Latency_-_Session_Average) AS "Latency - Session Average"</query>
+	    </search>
+	    <option name="charting.chart">line</option>
+	    <option name="charting.chart.nullValueMode">connect</option>
+	    <option name="charting.legend.placement">bottom</option>
+	    <option name="charting.axisY.maximumNumber">100</option>
+	    <option name="charting.axisY.minimumNumber">0</option>
+	    <option name="resizable">true</option> true,
+	    <option name="charting.axisTitleX.visibility">collapsed</option>
+	</chart>
+      
+    </panel>
+    
+    <panel>
+	<chart id="timechartVC">
+	    <title>Virtual Channel Bandwidth Usage (bps)</title>
+	    <search id="timechartVCSearch">
+		<query>`xd_perfmon_index` host="$servername$" sourcetype="PerfmonMk:ICASession" | rex field=instance ".*\\((?P&lt;UserName&gt;[^\\)]+)" | eval UserName=lower(UserName) | where UserName=lower("$username$") | timechart max(*_Bandwidt*) AS *_Bandwidt*</query>
+	    </search>
+	    <option name="charting.chart">line</option>
+	    <option name="charting.chart.nullValueMode">connect</option>
+	    <option name="charting.legend.placement">bottom</option>
+	    <option name="charting.axisY.maximumNumber">100</option>
+	    <option name="charting.axisY.minimumNumber">0</option>
+	    <option name="height">400px</option>
+	    <option name="resizable">true</option> true,
+	    <option name="charting.axisTitleX.visibility">collapsed</option>
+	</chart>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+	<html>
+	    <img src="/static/app/TemplateForXenApp/images/info.png" style="padding-right: 5px" /> <a id="aSessionDetails" href="/app/TemplateForXenApp/session-user?form.username=$username$&amp;form.servername=$servername$&amp;earliest=$earliest$&amp;latest=$latest$&amp;form.sessionId=$sessionId$">More session details including process breakdown.</a>
+	</html>
+    </panel>
+  </row>
+</form>

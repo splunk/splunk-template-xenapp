@@ -6,7 +6,7 @@
 	<property name="XMLADDON" value="TA-XA6x-XML"/>
 	<property name="ZDCADDON" value="TA-XA6x-ZDC"/>
 
-	<property name="VERSION" value="1.1.0"/>
+	<property name="VERSION" value="1.1.1"/>
 	<buildnumber/>
 
 	<property name="build.dir" value="build"/>
@@ -141,6 +141,12 @@
 			<filterset>
 				<filter token="VERSION" value="${VERSION}"/>
 			</filterset>
+		</copy>
+	</target>
+	
+	<target name="test">
+		<copy todir="${build.dir}/${APP}/lookups" filtering="off" verbose="on">
+			<fileset dir="lookups"></fileset>
 		</copy>
 	</target>
 

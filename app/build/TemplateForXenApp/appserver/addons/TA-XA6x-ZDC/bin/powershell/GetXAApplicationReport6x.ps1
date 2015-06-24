@@ -6,44 +6,27 @@ if ($snapins -eq $null)
 }
 
 $FarmName = Get-XAFarm | select -ExpandProperty FarmName
-$ScriptRunTime = (get-date).ToFileTime()
-$CommandLineExecutable = ""
-$ProcessName = ""
+$RegexOptions = [System.Text.RegularExpressions.regexoptions]
+$SplitRegex = '( )(?=(?:[^"]|"[^"]*")*$)'
 
+foreach( $Application in (Get-XAApplicationReport *) ) {
 
-Get-XAApplicationReport * | foreach-object {
-
-    $Application = $_
-    $output = $Application | Get-Member -MemberType Properties | foreach-object {
-        if(-not ( $_.Name -eq "IconData" ) )
-        {
-            $Key = $_.Name
-            $Value = $Application.$Key -join ";"
-
-            if($Key -eq "CommandLineExecutable") { $CommandLineExecutable = $Value }
-
-            '{0}="{1}"' -f $Key,$Value
-        }
+    $output = foreach( $P in $Application.PsObject.Properties | ? {$_.Name -ne "IconData" }) {
+        '{0}="{1}"' -f @($P.Name, ($Application."$($P.Name)" -join ";") )
     }
-
+    
     $output += '{0}="{1}"' -f "FarmName",$FarmName
-    $output += '{0}="{1}"' -f "ScriptRunTime",$ScriptRunTime
-
+    
     # The following lines extract just the process name from the CommandLineExecutable property.
-    # This is done so we can coorelate perfmon running processes to published applications
-
-    $c = $CommandLineExecutable -split '"'
-
-    if($c.Length -gt 1)
-    {
-        $ProcessName = Split-Path $c[1]  -Leaf
-
-    } else {
-        $ProcessName = Split-Path $c[0]  -Leaf
+    # This is done so we can coorelate perfmon running processes to published applications.
+    $ProcessName = "" 
+    
+    $c = [regex]::Split($Application.CommandLineExecutable, $SplitRegex, $RegexOptions::ExplicitCapture)
+    if($c.Length -ge 1 ) {
+        $ProcessName = (Split-Path -leaf ( $c[0]  -replace '"','' )) -replace ".exe","" 
     }
-
-    $output += '{0}="{1}"' -f "ProcessName", $ProcessName.Replace(".exe", "")
+    
+    $output += '{0}="{1}"' -f "ProcessName", $ProcessName
     
     Write-Host ("{0:MM/dd/yyyy HH:mm:ss} GMT - {1}" -f ((get-date).ToUniversalTime()),( $output -join " " ))
-
-} 
+}

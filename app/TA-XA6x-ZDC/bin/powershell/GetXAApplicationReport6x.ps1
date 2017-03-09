@@ -9,7 +9,7 @@ $FarmName = Get-XAFarm | select -ExpandProperty FarmName
 $RegexOptions = [System.Text.RegularExpressions.regexoptions]
 $SplitRegex = '( )(?=(?:[^"]|"[^"]*")*$)'
 
-foreach( $Application in (Get-XAApplicationReport *) ) {
+foreach( $Application in (Get-XAApplicationReport * | where-object {$_.ApplicationType -ne "ServerDesktop"}) ) {
 
     $output = foreach( $P in $Application.PsObject.Properties | ? {$_.Name -ne "IconData" }) {
         '{0}="{1}"' -f @($P.Name, ($Application."$($P.Name)" -join ";") )

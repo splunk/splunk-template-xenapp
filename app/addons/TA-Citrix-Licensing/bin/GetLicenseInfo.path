@@ -1,0 +1,1 @@
+$SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe -command  " &'$SPLUNK_HOME\etc\apps\Splunk_TA_CitrixLicensing_V1\bin\powershell\GetLicenseInfo.ps1'"
